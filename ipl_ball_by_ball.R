@@ -25,8 +25,10 @@ colnames(ball_by_ball_score) <- c("Balls", "Over_no", "Ball_no", "Runs", "Wicket
 #Over 10.
 #The output of the model is the output of linear regression, with a correction term to account
 #for which way the momentum has been swinging in the last two overs.
-for(match_number in 1:636)
-{
+predicted_score_ten <- vector(mode = "numeric")
+# for(match_number in 1:636)
+# {
+match_number <- 467
 test_one <- ball_by_ball_score[ball_by_ball_score$Match == match_number,]
 
 # predict_after <- as.numeric(readline(prompt = "When do you want to begin prediction? (>7 Overs)"))
@@ -48,9 +50,18 @@ print(run_rate_2)
 #Quantifying effect of momentum - ((run rate from last 2 overs / innings run rate) - 1) X 10
 momentum_runs <- ((run_rate_2/run_rate) - 1) * 16.25
 print(momentum_runs)
-predicted_score_ten[match_number] <- lm_score + momentum_runs
-# print(predicted_score_ten)
-}
+
+#Use the past matches at that venue to make another lm prediction
+matches_at_venue <- subset(ball_by_ball_score, ball_by_ball_score$Match == which(matches$venue == matches$venue[matches$id[match_number]]))
+matches_venue_train <- matches_at_venue[matches_at_venue$Over_no <= predict_after,]
+venue_lm <- lm(Runs ~ Balls + Wickets, matches_venue_train)
+summary(venue_lm)
+venue_lm_score <- predict(venue_lm, test_b_w)
+print(venue_lm_score)
+
+predicted_score_ten <- ((lm_score + venue_lm_score) / 2) + momentum_runs
+print(predicted_score_ten)
+# }
 
 #Collect the actual scores after 10 overs in a data frame. Only one match, ID 393, ended after
 #eight, so including that especially to not fuck up the order. Attach the predictions to the
