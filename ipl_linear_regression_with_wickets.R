@@ -1,5 +1,5 @@
 #Must somehow add a column with wickets after each over
-setwd("C://Users/apoorva.bhide/Documents/R files")
+setwd("~/R Work")
 ipl_deliveries <- read.csv("./deliveries.csv", stringsAsFactors = FALSE, header = TRUE)
 
 #Which match is in which season?
@@ -19,10 +19,10 @@ over_by_over_wic <- cbind(over_by_over, cumulative_score, cumulative_wickets)
 over_by_over_08_wic <- over_by_over_wic
 score_by_over_wic <- split(over_by_over_08_wic, f = list(over_by_over_08_wic$`innings_one$match_id`, over_by_over_08_wic$`innings_one$inning`))
 #Convert the awkward score_by_over_08 list to a data frame with all the scores
-score_by_over_wic_df <- as.data.frame(score_by_over_08[[1]][[1]])
+score_by_over_wic_df <- as.data.frame(score_by_over_wic[[1]][[1]])
 colnames(score_by_over_wic_df) <- "Overs"
 
-for(i in 1:577)
+for(i in 1:636)
 {
   runs_wic <- as.data.frame(cbind(score_by_over_wic[[i]][1], score_by_over_wic[[i]][6], score_by_over_wic[[i]][7])) 
   colnames(runs_wic) <- c("Overs", "Runs", "Wickets")
@@ -31,7 +31,7 @@ for(i in 1:577)
 names_wic_df <- vector(mode = "character")
 names_wic_df[1] <- "Overs"
 
-for(i in 2:1155)
+for(i in 2:1273)
 {
   if(i %% 2 == 0)
   {
@@ -47,7 +47,7 @@ colnames(score_by_over_wic_df) <- names_wic_df
 #Calculate the maximum score in each innings (might not always be the 20th over score) and maximum wickets
 max_score_wic <- vector(mode = "integer")
 max_score_wic[1] <- 20
-for(i in 2:1155)
+for(i in 2:1273)
 {
   max_score_wic[i] <- max(score_by_over_wic_df[i], na.rm = TRUE)
 }
@@ -58,7 +58,7 @@ t_score_wic_df <- as.data.frame((t(score_by_over_wic_df)))
 
 #Let's separate out the wickets
 wickets_set <- data.frame()
-for(i in 2:1155)
+for(i in 2:1273)
 {
   if(i %% 2 != 0)
   {
@@ -67,7 +67,7 @@ for(i in 2:1155)
 }
 
 #Delete the wickets rows from the data frame
-toDelete <- seq(3, 1155, 2)
+toDelete <- seq(3, 1273, 2)
 t_score_wic_df <- t_score_wic_df[-toDelete,]
 
 #cbind the wickets to the end of this
