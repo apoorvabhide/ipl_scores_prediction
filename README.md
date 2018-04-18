@@ -8,3 +8,5 @@ I'm using data from all 10 seasons, but only the first innings so far, because t
 2. ipl_linear_regression_with_wickets.r: I've added the basic impact of wickets in this case. This time, I consider the wickets AND the runs, as seen at the 6 and 15 over mark, and fit a linear regression model. The results are quite good: the R-squared value is 0.7962.
 
 3. ipl_ball_by_ball.r: I decided that overs wasn't granular enough, I wanted to test out short-term predictions on ball-by-ball data. So, I collect ball-by-ball data for X number of overs and then try to predict what the score will be 2 overs later. As of now, just to test it out, X is 8. To predict, I use a linear regression model based on balls and wickets, and add a term to account for momentum (whether the innings has gotten faster or slower recently.)
+
+4. ipl_final_score.r: In this file, I just try to predict the final score given the current state (balls, runs, wickets). I train linear regression models over a. All IPL games, b. similar games (within 5 runs and 1 wicket of the current), and c. All matches played at that venue, and try to predict the final score in the given condition.
