@@ -10,6 +10,7 @@ ipl_ball <- merge(ipl_deliveries, match_season, by.x = "match_id", by.y = "id")
 #Let's subset only the first innings part, because the two innings are gonna be different
 innings_one <- ipl_ball[ipl_ball$inning == 1,]
 innings_one$balls_count <- rep(1)
+innings_one$balls_count[innings_one$wide_runs > 0 | innings_one$noball_runs > 0] <- 0
 innings_one$cumulative_balls <- ave(innings_one$balls_count, innings_one$inning, innings_one$match_id, FUN = cumsum)
 cumulative_run_ball <- ave(innings_one$total_runs, innings_one$inning, innings_one$match_id, FUN = cumsum)
 cumulative_wic_ball <- ave(innings_one$player_dismissed, innings_one$inning, innings_one$match_id, FUN = function(x)cumsum(x != ""))
@@ -22,7 +23,37 @@ colnames(final_score) <- c("Match", "Score")
 ball_by_ball_score <- merge(ball_by_ball_score, final_score, by = "Match")
 
 #Fit a linear model on the ball-by-ball data
-final_score_lin <- lm(ball_by_ball_score$Score ~ ball_by_ball_score$Runs + ball_by_ball_score$Wickets, ball_by_ball_score)
+final_score_lin <- lm(Score ~ Runs + Wickets + Balls, ball_by_ball_score)
 summary(final_score_lin)
 
+runs_test <- 132
+wickets_test <- 4
+balls_test <- 106
+test_random <- data.frame(cbind(runs_test,wickets_test,balls_test))
+colnames(test_random) <- c("Runs", "Wickets", "Balls")
+
+# wicket_factor <- (1.01) * ((1.01) ^ ((1 - wickets_test))) * ((1.01) ^ ((2*(runs_test / balls_test) - 1)))
+  wicket_factor <- 1
+
+predict_random <- predict(final_score_lin, test_random)
+predict_random_w <- predict_random*wicket_factor
+
+#Let's look only at similar games: train lm model on similar matches
+matches_over_test <- ball_by_ball_score[ball_by_ball_score$Balls == balls_test,]
+matches_over_test$Ball_no <- NULL
+similar_matches <- subset(matches_over_test, matches_over_test$Runs <= runs_test + 3 & matches_over_test$Runs >= runs_test - 3 & matches_over_test$Wickets <= wickets_test + 1 & matches_over_test$Wickets >= wickets_test - 1)
+similar_set <- subset(ball_by_ball_score, ball_by_ball_score$Match %in% similar_matches$Match)
+similar_model <- lm(Score ~ Runs + Wickets + Balls, similar_set)
+summary(similar_model)
+predict_similar <- predict(similar_model, test_random)
+predict_similar_w <- predict_similar*wicket_factor
+
+#Let's look at the average score at that venue
+city_ex <- "Abu Dhabi"
+city_matches <- subset(matches, matches$city == city_ex)
+matches_venue <- subset(ball_by_ball_score, ball_by_ball_score$Match %in% city_matches$id)
+venue_model <- lm(Score ~ Runs + Wickets + Balls, matches_venue)
+summary(venue_model)
+predict_venue <- predict(venue_model, test_random)
+predict_venue_w <- predict_venue*wicket_factor
 
