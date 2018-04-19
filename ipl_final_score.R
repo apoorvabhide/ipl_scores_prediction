@@ -25,10 +25,14 @@ ball_by_ball_score <- merge(ball_by_ball_score, final_score, by = "Match")
 #Fit a linear model on the ball-by-ball data
 final_score_lin <- lm(Score ~ Runs + Wickets + Balls, ball_by_ball_score)
 summary(final_score_lin)
+testing_match <- ball_by_ball_score[ball_by_ball_score$Match == 274,]
+predictions <- data.frame()
 
-runs_test <- 132
-wickets_test <- 4
-balls_test <- 106
+for(i in 1:length(testing_match$Balls))
+{
+runs_test <- testing_match$Runs[i]
+wickets_test <- testing_match$Wickets[i]
+balls_test <- testing_match$Balls[i]
 test_random <- data.frame(cbind(runs_test,wickets_test,balls_test))
 colnames(test_random) <- c("Runs", "Wickets", "Balls")
 
@@ -49,7 +53,7 @@ predict_similar <- predict(similar_model, test_random)
 predict_similar_w <- predict_similar*wicket_factor
 
 #Let's look at the average score at that venue
-city_ex <- "Abu Dhabi"
+city_ex <- "Chandigarh"
 city_matches <- subset(matches, matches$city == city_ex)
 matches_venue <- subset(ball_by_ball_score, ball_by_ball_score$Match %in% city_matches$id)
 venue_model <- lm(Score ~ Runs + Wickets + Balls, matches_venue)
@@ -57,3 +61,11 @@ summary(venue_model)
 predict_venue <- predict(venue_model, test_random)
 predict_venue_w <- predict_venue*wicket_factor
 
+predict_w <- data.frame(cbind(predict_random_w, predict_similar_w, predict_venue_w))
+predictions <- rbind(predictions, predict_w)
+}
+
+predictions$index <- seq(1, length(predictions$predict_similar_w), 1)
+
+plot(x = predictions$index, y = predictions$predict_similar_w)
+ggplot(predictions, )
